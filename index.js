@@ -1,7 +1,16 @@
-var express = require("express")
-var bodyParser=require('body-parser')
-var log = require('log');
-require("log-node")();
+var express = require("express");
+var bodyParser=require('body-parser');
+var winston = require("winston");
+
+const logger = winston.createLogger({
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({ filename: 'combined.log' })
+    ]
+  });
+
+
+
 
 app = express();
 // we set the port programmatically, in case we need to change it later
@@ -19,15 +28,24 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname + root));
 
 app.get("/test",function(request,response){
+    logger.log({
+        level: 'info',
+        message: "GET request to /test"
+    })
     var param=request.query.username
     console.log('Get requested by '+param)
     response.send('Thank you for requesting our Get Service')
 })
 
 app.post('/test',function(request,response){
-    console.log(request.body)
+    logger.log({
+        level: 'info',
+        message: "POST request to /test"
+    })
+
     var data=request.body;
     console.log('Post requested, here is the data :'+data)
+    
     response.send('Thank you for requesting our Post Service')
 });
 
@@ -61,6 +79,11 @@ app.post('/calculator', (req, res) => {
             break;
     }   
 
+    logger.log({
+        level: 'info',
+        message: "POST request to /calculator"
+    })
+
     if (result == null){
         res.status(400).send({error: "Incorrect calculator operator."});
     } else {
@@ -70,9 +93,13 @@ app.post('/calculator', (req, res) => {
     
 });
 
-log.info("some info message %s", "injected string");
 
 
 //start the app and listen to the port
-app.listen(port);
+app.listen(port, () => {
+    logger.log({
+        level: 'info',
+        message: "Server started"
+    })
+});
 console.log("Listening on port ", port);
